@@ -14,3 +14,9 @@ Options:
   -h --help  Show this screen.
   --version  Show version.
 ```
+
+To build, ensure that $GOPATH is set and then simply run:
+
+```
+  go build
+```
