@@ -24,6 +24,19 @@ To build, ensure that $GOPATH is set and then simply run:
 $ go build
 ```
 
+.clerc
+------
+clerc will try to fetch config from ~/.clerc if it exists.
+
+Example .clerc
+```
+{
+   "verbose": true,
+   "show": false,
+   "url": "http://www.example.com:8098"
+}
+```
+
 Usage examples
 --------------
 
@@ -48,7 +61,7 @@ Show object
 $ clerc fruits banana
 {
     "color": "yellow"
-} 
+}
 
 ```
 
