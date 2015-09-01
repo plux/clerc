@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/user"
+	"strings"
 )
 
 type Buckets struct {
@@ -24,6 +27,7 @@ const (
 	buckets = iota
 	keys
 	obj
+	put
 )
 
 type Config struct {
@@ -51,6 +55,9 @@ func main() {
 		} else {
 			show_keys(config)
 		}
+	case put:
+		obj := read_stdin()
+		put_obj(config, config.Bucket, config.Key, obj)
 	}
 }
 
@@ -58,6 +65,7 @@ func parse_options() Args {
 	usage := `clerc - Command LinE Riak Client
 
 Usage:
+  clerc BUCKET KEY [--url=URL] [--put|--delete] [--verbose]
   clerc BUCKET [KEY] [--url=URL] [--verbose] [--show]
   clerc -h | --help
   clerc --version
@@ -95,6 +103,9 @@ func init_config(args Args) Config {
 		config.Command = obj
 		config.Key = args["KEY"].(string)
 	}
+	if args["--put"] == true {
+		config.Command = put
+	}
 	return config
 }
 
@@ -119,6 +130,12 @@ func new_config() Config {
 		Verbose: false,
 		Show:    false,
 	}
+}
+
+func read_stdin() []byte {
+	bytes, err := ioutil.ReadAll(os.Stdin)
+	perror(err)
+	return bytes
 }
 
 func show_keys(config Config) {
@@ -152,16 +169,38 @@ func show_obj(config Config, bucket string, key string) {
 	fmt.Println(obj)
 }
 
+func put_obj(config Config, bucket string, key string, obj []byte) {
+	resource := "/riak/" + config.Bucket + "/" + config.Key
+	log(config, "Making request: "+config.Url+resource)
+	reader := strings.NewReader(string(obj))
+	resp, err := http.Post(config.Url+resource, "application/json", reader)
+	perror(err)
+	assert_status(resp, 204)
+	read_body(config, resp)
+}
+
+func read_body(config Config, resp *http.Response) []byte {
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	perror(err)
+	log(config, "Got response: "+string(body))
+	return body
+}
+
 func get_obj(config Config, bucket string, key string) string {
 	resource := "/buckets/" + bucket + "/keys/" + key
 	log(config, "Making request: "+config.Url+resource)
 	resp, err := http.Get(config.Url + resource)
 	perror(err)
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	perror(err)
-	log(config, "Got response: "+string(body))
+	assert_status(resp, 200)
+	body := read_body(config, resp)
 	return prettify(body)
+}
+
+func assert_status(resp *http.Response, status int) {
+	if resp.StatusCode != status {
+		perror(errors.New("Unexpected status: " + resp.Status))
+	}
 }
 
 func prettify(data []byte) string {
@@ -192,10 +231,8 @@ func make_request(data interface{}, config Config, resource string) {
 	log(config, "Making request: "+config.Url+resource)
 	resp, err := http.Get(config.Url + resource)
 	perror(err)
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	perror(err)
-	log(config, "Got response: "+prettify(body))
+	assert_status(resp, 200)
+	body := read_body(config, resp)
 	json.Unmarshal(body, &data)
 }
 
