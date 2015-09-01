@@ -14,14 +14,17 @@ import (
 )
 
 type Buckets struct {
-	Buckets []string `json:"buckets"`
+	Buckets []Bucket `json:"buckets"`
 }
 
 type Keys struct {
-	Keys []string `json:"keys"`
+	Keys []Key `json:"keys"`
 }
 
 type Command int
+type Url string
+type Bucket string
+type Key string
 
 const (
 	buckets = iota
@@ -31,11 +34,11 @@ const (
 )
 
 type Config struct {
-	Url     string `json:"url"`
+	Url     Url `json:"url"`
 	Command Command
 	Verbose bool `json:"verbose"`
-	Bucket  string
-	Key     string
+	Bucket  Bucket
+	Key     Key
 	Show    bool `json:"show"`
 }
 
@@ -92,17 +95,17 @@ func init_config(args Args) Config {
 		config.Show = true
 	}
 	if args["--url"] != nil {
-		config.Url = args["--url"].(string)
+		config.Url = Url(args["--url"].(string))
 	}
 	if args["BUCKET"] == "/" {
 		config.Command = buckets
 	} else if args["BUCKET"] != nil {
 		config.Command = keys
-		config.Bucket = args["BUCKET"].(string)
+		config.Bucket = Bucket(args["BUCKET"].(string))
 	}
 	if args["KEY"] != nil {
 		config.Command = obj
-		config.Key = args["KEY"].(string)
+		config.Key = Key(args["KEY"].(string))
 	}
 	if args["--put"] == true {
 		config.Command = put
@@ -150,7 +153,7 @@ func show_keys(config Config) {
 func get_keys(config Config) Keys {
 	var keys Keys
 	make_request(&keys, config,
-		"/buckets/"+config.Bucket+"/keys?keys=true")
+		"/buckets/"+string(config.Bucket)+"/keys?keys=true")
 	return keys
 }
 
@@ -164,17 +167,17 @@ func show_objs(config Config) {
 	return
 }
 
-func show_obj(config Config, bucket string, key string) {
+func show_obj(config Config, bucket Bucket, key Key) {
 	obj := get_obj(config, bucket, key)
-	log(config, "Showing object: "+bucket+"/"+key)
+	log(config, "Showing object: "+string(bucket)+"/"+string(key))
 	fmt.Println(obj)
 }
 
-func put_obj(config Config, bucket string, key string, obj []byte) {
-	resource := "/riak/" + config.Bucket + "/" + config.Key
-	log(config, "Making request: "+config.Url+resource)
+func put_obj(config Config, bucket Bucket, key Key, obj []byte) {
+	resource := "/riak/" + string(bucket) + "/" + string(key)
+	log(config, "Making request: "+string(config.Url)+resource)
 	reader := strings.NewReader(string(obj))
-	response, err := http.Post(config.Url+resource, "application/json", reader)
+	response, err := http.Post(string(config.Url)+resource, "application/json", reader)
 	perror(err)
 	assert_status(response, 204)
 	read_body(config, response)
@@ -188,10 +191,10 @@ func read_body(config Config, response *http.Response) []byte {
 	return body
 }
 
-func get_obj(config Config, bucket string, key string) string {
-	resource := "/buckets/" + bucket + "/keys/" + key
-	log(config, "Making request: "+config.Url+resource)
-	response, err := http.Get(config.Url + resource)
+func get_obj(config Config, bucket Bucket, key Key) string {
+	resource := "/buckets/" + string(bucket) + "/keys/" + string(key)
+	log(config, "Making request: "+string(config.Url)+resource)
+	response, err := http.Get(string(config.Url) + resource)
 	perror(err)
 	assert_status(response, 200)
 	body := read_body(config, response)
@@ -229,8 +232,8 @@ func get_buckets(config Config) Buckets {
 }
 
 func make_request(data interface{}, config Config, resource string) {
-	log(config, "Making request: "+config.Url+resource)
-	response, err := http.Get(config.Url + resource)
+	log(config, "Making request: "+string(config.Url)+resource)
+	response, err := http.Get(string(config.Url) + resource)
 	perror(err)
 	assert_status(response, 200)
 	body := read_body(config, response)
