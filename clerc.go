@@ -173,15 +173,15 @@ func put_obj(config Config, bucket string, key string, obj []byte) {
 	resource := "/riak/" + config.Bucket + "/" + config.Key
 	log(config, "Making request: "+config.Url+resource)
 	reader := strings.NewReader(string(obj))
-	resp, err := http.Post(config.Url+resource, "application/json", reader)
+	response, err := http.Post(config.Url+resource, "application/json", reader)
 	perror(err)
-	assert_status(resp, 204)
-	read_body(config, resp)
+	assert_status(response, 204)
+	read_body(config, response)
 }
 
-func read_body(config Config, resp *http.Response) []byte {
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+func read_body(config Config, response *http.Response) []byte {
+	defer response.Body.Close()
+	body, err := ioutil.ReadAll(response.Body)
 	perror(err)
 	log(config, "Got response: "+string(body))
 	return body
@@ -190,16 +190,16 @@ func read_body(config Config, resp *http.Response) []byte {
 func get_obj(config Config, bucket string, key string) string {
 	resource := "/buckets/" + bucket + "/keys/" + key
 	log(config, "Making request: "+config.Url+resource)
-	resp, err := http.Get(config.Url + resource)
+	response, err := http.Get(config.Url + resource)
 	perror(err)
-	assert_status(resp, 200)
-	body := read_body(config, resp)
+	assert_status(response, 200)
+	body := read_body(config, response)
 	return prettify(body)
 }
 
-func assert_status(resp *http.Response, status int) {
-	if resp.StatusCode != status {
-		perror(errors.New("Unexpected status: " + resp.Status))
+func assert_status(response *http.Response, status int) {
+	if response.StatusCode != status {
+		perror(errors.New("Unexpected status: " + response.Status))
 	}
 }
 
@@ -229,10 +229,10 @@ func get_buckets(config Config) Buckets {
 
 func make_request(data interface{}, config Config, resource string) {
 	log(config, "Making request: "+config.Url+resource)
-	resp, err := http.Get(config.Url + resource)
+	response, err := http.Get(config.Url + resource)
 	perror(err)
-	assert_status(resp, 200)
-	body := read_body(config, resp)
+	assert_status(response, 200)
+	body := read_body(config, response)
 	json.Unmarshal(body, &data)
 }
 
