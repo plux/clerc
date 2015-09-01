@@ -66,12 +66,12 @@ func parse_options() Args {
 
 Usage:
   clerc BUCKET KEY [--url=URL] [--put] [--verbose]
-  clerc BUCKET [KEY] [--url=URL] [--verbose] [--show]
+  clerc BUCKET [--url=URL] [--verbose] [--show]
   clerc -h | --help
   clerc --version
 
 Options:
-  --url=URL  Set the URL of the riak web API. [default: http://127.0.0.1:8098]
+  --url=URL  Set the URL of the riak web API.
   --verbose  Show additional information, useful for debugging.
   --show     List objects instead of keys when listing a bucket.
   --put      Put object which is read from stdin.

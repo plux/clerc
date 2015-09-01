@@ -5,7 +5,7 @@ Command LinE Riak Client
 ```
 Usage:
   clerc BUCKET KEY [--url=URL] [--put] [--verbose]
-  clerc BUCKET [KEY] [--url=URL] [--verbose] [--show]
+  clerc BUCKET [--url=URL] [--verbose] [--show]
   clerc -h | --help
   clerc --version
 
