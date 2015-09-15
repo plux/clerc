@@ -213,7 +213,6 @@ func get_obj(config Config, bucket Bucket, key Key) string {
 	log(config, "Making request: "+string(config.Url)+resource)
 	response, err := http.Get(string(config.Url) + resource)
 	perror(err)
-	assert_status(response, 200)
 	body := read_body(config, response)
 	return prettify(body)
 }
