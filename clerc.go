@@ -31,6 +31,7 @@ const (
 	keys
 	obj
 	put
+	delete
 )
 
 type Config struct {
@@ -61,6 +62,8 @@ func main() {
 	case put:
 		obj := read_stdin()
 		put_obj(config, config.Bucket, config.Key, obj)
+	case delete:
+		delete_obj(config, config.Bucket, config.Key)
 	}
 }
 
@@ -68,7 +71,7 @@ func parse_options() Args {
 	usage := `clerc - Command LinE Riak Client
 
 Usage:
-  clerc BUCKET KEY [--url=URL] [--put] [--verbose]
+  clerc BUCKET KEY [--url=URL] [--put | --delete] [--verbose]
   clerc BUCKET [--url=URL] [--verbose] [--show]
   clerc -h | --help
   clerc --version
@@ -109,6 +112,9 @@ func init_config(args Args) Config {
 	}
 	if args["--put"] == true {
 		config.Command = put
+	}
+	if args["--delete"] == true {
+		config.Command = delete
 	}
 	return config
 }
@@ -171,6 +177,17 @@ func show_obj(config Config, bucket Bucket, key Key) {
 	obj := get_obj(config, bucket, key)
 	log(config, "Showing object: "+string(bucket)+"/"+string(key))
 	fmt.Println(obj)
+}
+
+func delete_obj(config Config, bucket Bucket, key Key) {
+	resource := "/riak/" + string(bucket) + "/" + string(key)
+	log(config, "Deleting: "+string(config.Url)+resource)
+	req, err := http.NewRequest("DELETE", string(config.Url)+resource, nil)
+	perror(err)
+	response, err := http.DefaultClient.Do(req)
+	perror(err)
+	log(config, "Deleted object: " + string(key))
+	read_body(config, response)
 }
 
 func put_obj(config Config, bucket Bucket, key Key, obj []byte) {
