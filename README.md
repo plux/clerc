@@ -4,7 +4,7 @@ Command LinE Riak Client
 
 ```
 Usage:
-  clerc BUCKET KEY [--url=URL] [--put] [--verbose]
+  clerc BUCKET KEY [--url=URL] [--put | --delete] [--verbose]
   clerc BUCKET [--url=URL] [--verbose] [--show]
   clerc -h | --help
   clerc --version
@@ -14,6 +14,7 @@ Options:
   --verbose  Show additional information, useful for debugging.
   --show     List objects instead of keys when listing a bucket.
   --put      Put object which is read from stdin.
+  --delete   Delete object
   -h --help  Show this screen.
   --version  Show version.
 ```
@@ -93,4 +94,11 @@ $ clerc fruits grape
 {
     "color": "purple"
 }
+```
+
+Delete object
+```
+$ clerc fruits grape --delete
+$ clerc fruits grape
+not found
 ```

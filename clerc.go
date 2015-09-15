@@ -81,6 +81,7 @@ Options:
   --verbose  Show additional information, useful for debugging.
   --show     List objects instead of keys when listing a bucket.
   --put      Put object which is read from stdin.
+  --delete   Delete object
   -h --help  Show this screen.
   --version  Show version.
 `
